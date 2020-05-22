@@ -71,7 +71,7 @@ get_scores()
 
 
 
-
+### Here we need to create Google sheets connection to send it to the Gsheets
 
 
 # import datetime

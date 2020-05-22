@@ -1,5 +1,5 @@
 #Add your URLs on <url>
-#We are running lightouse headless and saving it as a json file on the json folder
+#We are running lighthouse headless and saving the output as a json file on the /json folder
 lighthouse <url> --quiet --chrome-flags="--headless" --output=json --output-path=./json/report1.json --save-assets 
 lighthouse <url> --quiet --chrome-flags="--headless" --output=json --output-path=./json/report2.json --save-assets
 lighthouse <url> --quiet --chrome-flags="--headless" --output=json --output-path=./json/report3.json --save-assets
