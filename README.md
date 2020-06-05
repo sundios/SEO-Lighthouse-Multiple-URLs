@@ -84,7 +84,7 @@ Once we have all the desired Json Files we need to open our Python file and chan
 
 Once we do this we are able tu run our ```get_scores()``` function. Once finished this will  output one master file with all your scores for your different URLs
 
-** For Example: **
+**For Example:**
 
 | url                                	| Performance 	| accessibility 	| best-practices 	| seo 	| pwd 	|
 |------------------------------------	|-------------	|---------------	|----------------	|-----	|-----	|
