@@ -8,6 +8,9 @@ Created on Thu May 21 11:30:59 2020
 import json 
 import pandas as pd 
 
+from datetime import date
+
+today = date.today().strftime("%Y-%m-%d")
 
 def get_scores():
     #empty DF to push all scores together into one DF
@@ -19,10 +22,17 @@ def get_scores():
         data = json.load(f)
     
         #Getting URL we are checking scores
-        url = data['requestedUrl']   
-        
+        url = data['requestedUrl']
+
+        #Getting Scores
+        LCP = data['audits']['largest-contentful-paint']['displayValue']
+        CLS = data['audits']['cumulative-layout-shift']['displayValue']
+
         #selecting the categories for scores
         df = data['categories']
+
+        #creating date column
+        today = today
         
         #going through the dictionary categories and pulling out scores into scores list
         scores = []
@@ -37,8 +47,26 @@ def get_scores():
         #adding url to scores
         scores.loc[5] = url
         
+        #adding date to scores
+        scores.loc[6] = today
+        
+        #Adding LCP to Scores
+        scores.loc[7] = LCP
+        
+        #Adding LCP to Scores
+        scores.loc[8] = CLS
+               
         #adding url to column 0
-        scores.iloc[-1:,0]='url'
+        scores.iloc[5,0]='url'
+    
+        #adding Dates to column 0
+        scores.iloc[6,0]='date'
+        
+        #adding LCP to column 0
+        scores.iloc[7,0]='LCP'
+    
+        #adding LCA to column 0
+        scores.iloc[8,0]='CLS'
     
         #transposing column  so that we can check multiple urls and have one big list
         scores = scores.transpose()
@@ -50,13 +78,27 @@ def get_scores():
         scores = scores.iloc[1:]
         
         #moving url column to index 0
-        scores = scores[['url','performance','accessibility','best-practices','seo','pwa']]
+        scores = scores[['url','performance','accessibility','best-practices','seo','pwa','LCP','CLS','date']]
         
         all_scores.append(scores)
         
         print(all_scores)
         
     all_scores = pd.concat(all_scores)
+
+    #removing s from LCA so we can get mean also transforming it to float
+    all_scores['LCP'] = all_scores['LCP'].astype(str).str.replace(r's', '').astype(float)
+        
+    #transforming into integer 
+    all_scores['LCP'] = all_scores['LCP'].astype(int)
+    #transforming into integer 
+    all_scores['CLS'] = all_scores['CLS'].astype(int)
+
+    #spitting out a CSV 
+    import datetime
+    filename =  datetime.date.today().strftime("%d-%m-%Y")+ 'all_scores.csv'    
+    all_scores.to_csv(filename)
+
         
     #spitting out a CSV       
     all_scores.to_csv('all_scores.csv')
