@@ -153,7 +153,7 @@ def get_scores(today):
     import glob
 
     #Files that we want to run to get totals
-    files = sorted(glob.glob('/*all_scores.csv'))
+    files = sorted(glob.glob('*all_scores.csv'))
 
     #opening all files
     li = []
@@ -178,19 +178,19 @@ def get_scores(today):
     #sort by urls and Date
     df = df.sort_values(by=['url','date'])
 
-
     df = df[['url','performance','accessibility','best-practices','seo','LCP','CLS','FCP','SI','TTI','TBT','date']]
 
     df["date"] = pd.to_datetime(df["date"]).dt.strftime("%Y-%m-%d")
 
 
-    #grouping regiones together by date
+    #grouping urls together by date
     r=[]
     for j in range(1):
         print(j)
         for i in urls:
             print(i)
             r.append(df.loc[df['url'] == i])
+
     
  #calling function    
 get_scores(today)   
