@@ -16,7 +16,7 @@ def get_scores(today):
     #empty DF to push all scores together into one DF
     all_scores =[]
     #Remember to change the range number depending on how many urls you have. Default is 20.
-    for k in range(12):  
+    for k in range(19):  
         # returns JSON object as a dictionary
         f = open('./json/report' + str(k + 1) + '.json')
         data = json.load(f)
@@ -24,21 +24,60 @@ def get_scores(today):
         #Getting URL we are checking scores
         url = data['requestedUrl']   
         
-        #Getting Metrics
+# =============================================================================
+#         #Getting Metrics
+#         
+# =============================================================================
         
         #First Contentful Paint
-        FCP  = data['audits']['first-contentful-paint']['displayValue']
-        #Largest Contentful Paint
-        LCP = data['audits']['largest-contentful-paint']['displayValue']
-        #Cumulative layout shift
-        CLS = data['audits']['cumulative-layout-shift']['displayValue']
-        #Speed Index
-        SI = data['audits']['speed-index']['displayValue']
-        #Time to Interactive
-        TTI = data['audits']['interactive']['displayValue']
-        #Total Blocking Time
-        TBT = data['audits']['total-blocking-time']['displayValue']
+        try:
+            #First Contentful Paint
+            FCP  = data['audits']['first-contentful-paint']['displayValue']
+        except KeyError:
+            print('no Values')
+            FCP = 0
+        pass
         
+        #Largest Contentful Paint
+        try:
+             
+            LCP = data['audits']['largest-contentful-paint']['displayValue']
+        except KeyError:
+            print('no Values')
+            LCP = 0
+        pass
+    
+        #Cumulative layout shift
+        try:
+            
+            CLS = data['audits']['cumulative-layout-shift']['displayValue']
+        except KeyError:
+            print('no Values')
+            CLS = 0
+        pass
+        
+        try: 
+            #Speed Index
+            SI = data['audits']['speed-index']['displayValue']
+        except KeyError:
+            print('no Values')
+            SI = 0
+        pass
+        try:
+            
+            #Time to Interactive
+            TTI = data['audits']['interactive']['displayValue']
+        except KeyError:
+            print('no Values')
+            TTI = 0
+        try:
+            
+            #Total Blocking Time
+            TBT = data['audits']['total-blocking-time']['displayValue']
+        except KeyError:
+            print('no Values')
+            TBT = 0
+        pass
         
         #selecting the categories for scores 
         df = data['categories']
@@ -121,9 +160,12 @@ def get_scores(today):
         
         all_scores.append(scores)
         
+    
     print(all_scores)
         
     all_scores = pd.concat(all_scores)
+    
+    all_scores = all_scores.fillna(0)
         
     
     #removing s from LCA so we can get mean also transforming it to float
@@ -144,54 +186,16 @@ def get_scores(today):
     import datetime
     filename =  datetime.date.today().strftime("%d-%m-%Y")+ 'all_scores.csv'    
     all_scores.to_csv(filename)
-    
-    #Concatenating all dates on one big master file
 
-
-    import numpy as np
-    import pandas as pd
-    import glob
-
-    #Files that we want to run to get totals
-    files = sorted(glob.glob('*all_scores.csv'))
-
-    #opening all files
-    li = []
-    for f in files:
-        df = pd.read_csv(f,index_col=False)
-        print(df)
-        li.append(df)
-
-
-    #concatenating all Dataframes into one
-    df = pd.concat(li)
-
-
-    #Getting list of regions
-    urls = df['url']
-
-
-    #deduplicate
-    urls = list(dict.fromkeys(urls))
-
-
-    #sort by urls and Date
-    df = df.sort_values(by=['url','date'])
-
-    df = df[['url','performance','accessibility','best-practices','seo','LCP','CLS','FCP','SI','TTI','TBT','date']]
-
-    df["date"] = pd.to_datetime(df["date"]).dt.strftime("%Y-%m-%d")
-
-
-    #grouping urls together by date
-    r=[]
-    for j in range(1):
-        print(j)
-        for i in urls:
-            print(i)
-            r.append(df.loc[df['url'] == i])
+    print(all_scores)
+    print('File was saved in ' , filename)
 
     
- #calling function    
-get_scores(today)   
-   
+
+    
+    
+#calling function    
+get_scores(today)
+        
+    
+
