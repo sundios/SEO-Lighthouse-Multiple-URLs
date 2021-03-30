@@ -1,201 +1,140 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu May 21 11:30:59 2020
-
-@author: kburchardt
-"""
-import json 
-import pandas as pd 
-
+import requests
+import pandas as pd
 from datetime import date
 
+url_list = pd.read_excel('urls.xlsx')
+device = 'mobile' #Select here device it can be mobile or desktop
+category = 'performance'
 today = date.today().strftime("%Y-%m-%d")
 
-def get_scores(today):
-    #empty DF to push all scores together into one DF
-    all_scores =[]
-    #Remember to change the range number depending on how many urls you have. Default is 20.
-    for k in range(19):  
-        # returns JSON object as a dictionary
-        f = open('./json/report' + str(k + 1) + '.json')
-        data = json.load(f)
-    
-        #Getting URL we are checking scores
-        url = data['requestedUrl']   
+
+def webcorevitals(url_list,device,category,today):
+    df_list = []
+    for url in url_list['URL']:
+        print(url)
+        
+           
+        #making api call for URL
+        response = requests.get("https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url="+url+"&strategy="+device+"&category="+category)
+        
+        
+        #saving response as json
+        data = response.json()
+        
+        print('Running URL #',url)
+        
+        test = url
+        date = today
         
 # =============================================================================
 #         #Getting Metrics
 #         
 # =============================================================================
         
+        try:   
+            data = data['lighthouseResult']
+        except KeyError:
+            print('no Values')
+            data = 'No Values.'
+        pass
         #First Contentful Paint
         try:
             #First Contentful Paint
-            FCP  = data['audits']['first-contentful-paint']['displayValue']
+            fcp  = data['audits']['first-contentful-paint']['displayValue']
         except KeyError:
             print('no Values')
-            FCP = 0
+            fcp = 0
         pass
         
         #Largest Contentful Paint
         try:
              
-            LCP = data['audits']['largest-contentful-paint']['displayValue']
+            lcp = data['audits']['largest-contentful-paint']['displayValue']
         except KeyError:
             print('no Values')
-            LCP = 0
+            lcp = 0
         pass
-    
+        
         #Cumulative layout shift
         try:
             
-            CLS = data['audits']['cumulative-layout-shift']['displayValue']
+            cls = data['audits']['cumulative-layout-shift']['displayValue']
         except KeyError:
             print('no Values')
-            CLS = 0
+            cls = 0
         pass
         
         try: 
             #Speed Index
-            SI = data['audits']['speed-index']['displayValue']
+            si = data['audits']['speed-index']['displayValue']
         except KeyError:
             print('no Values')
-            SI = 0
+            si = 0
         pass
         try:
             
             #Time to Interactive
-            TTI = data['audits']['interactive']['displayValue']
+            tti = data['audits']['interactive']['displayValue']
         except KeyError:
             print('no Values')
-            TTI = 0
-        try:
-            
+            tti = 0
+        try: 
             #Total Blocking Time
-            TBT = data['audits']['total-blocking-time']['displayValue']
+            tbt= data['audits']['total-blocking-time']['displayValue']
         except KeyError:
             print('no Values')
-            TBT = 0
+            tbt = 0
         pass
         
-        #selecting the categories for scores 
-        df = data['categories']
-        
-        #creating date column
-        today = today
-        
-        #going through the dictionary categories and pulling out scores into scores list
-        scores = []
-        for i in df:
-            print(i , df[i]['score'])
-            s = i , df[i]['score']
-            scores.append(s)
+        try:
+            #score
+            score = data['categories']['performance']['score']
+        except KeyError:
+            print('no Values')
+        pass
+            
+        #list with all values
+        values = [test, score,fcp,si,lcp,tti,tbt,cls,date]
         
         # create DataFrame using from score list 
-        scores = pd.DataFrame(scores, columns =['Category', 'Score'])
+        df_score = pd.DataFrame( values )
         
-      
-        #adding url to scores
-        scores.loc[5] = url
+        #transpose so its columns
+        df_score = df_score.transpose()
         
-        #adding date to scores
-        scores.loc[6] = today
-        
-        #Adding LCP to Scores
-        scores.loc[7] = FCP
-        
-        #Adding LCP to Scores
-        scores.loc[8] = LCP
-        
-        #Adding LCP to Scores
-        scores.loc[9] = CLS
-               
-        #Adding LCP to Scores
-        scores.loc[10] = SI
-               
-        #Adding LCP to Scores
-        scores.loc[11] = TTI
-        
-         #Adding LCP to Scores
-        scores.loc[12] = TBT
-               
-               
-        #adding url to column 0
-        scores.iloc[5,0]='url'
+        #appending scores to empty df outside for loop
+        df_list.append(df_score)
+
+    #concatinating list of dataframe into one
+    df = pd.concat(df_list)
     
-        #adding Dates to column 0
-        scores.iloc[6,0]='date'
-        
-        #adding LCP to column 0
-        scores.iloc[7,0]='FCP'
+    #naming columns
+    df.columns = ['URL','Score', 'FCP','SI','LCP','TTI','TBT','CLS','Date']
     
-        #adding LCA to column 0
-        scores.iloc[8,0]='LCP'
-        
-        #adding LCP to column 0
-        scores.iloc[9,0]='CLS'
+    #removing s from LCA so we can get mean also transforming it to float so we can get mean values
+    df['LCP'] = df['LCP'].astype(str).str.replace(r's', '').astype(float)
+    df['FCP'] = df['FCP'].astype(str).str.replace(r's', '').astype(float)
+    df['SI'] = df['SI'].astype(str).str.replace(r's', '').astype(float)
+    df['TTI'] = df['TTI'].astype(str).str.replace(r's', '').astype(float)
+    df['TBT'] = df['TBT'].astype(str).str.replace(r'ms', '')
+    df['TBT'] = df['TBT'].astype(str).str.replace(r',', '').astype(float)
+    df['Score'] = df['Score'].astype(float)
+    df['CLS'] = df['CLS'].astype(float)
     
-        #adding LCA to column 0
-        scores.iloc[10,0]='SI'
-        
-        #adding LCA to column 0
-        scores.iloc[11,0]='TTI'
-        
-        #adding LCA to column 0
-        scores.iloc[12,0]='TBT'
-        
-        #transposing column so that we can check multiple urls and have one big list
-        scores = scores.transpose()
-        
-               
-        #making row 0 the header
-        scores.columns = scores.iloc[0]
-        
-        #selecting removing top row as we just made it the header
-        scores = scores.iloc[1:]
-        
-        #moving url column to index 0
-        scores = scores[['url','performance','accessibility','best-practices','seo','pwa','LCP','CLS','FCP','SI','TTI','TBT','date']]
-        
-        all_scores.append(scores)
-        
+    CSV(df)
     
-    print(all_scores)
-        
-    all_scores = pd.concat(all_scores)
+## CSV Generator
     
-    all_scores = all_scores.fillna(0)
-        
-    
-    #removing s from LCA so we can get mean also transforming it to float
-    all_scores['LCP'] = all_scores['LCP'].astype(str).str.replace(r's', '').astype(float)
-    all_scores['FCP'] = all_scores['FCP'].astype(str).str.replace(r's', '').astype(float)
-    all_scores['SI'] = all_scores['SI'].astype(str).str.replace(r's', '').astype(float)
-    all_scores['TTI'] = all_scores['TTI'].astype(str).str.replace(r's', '').astype(float)
-    all_scores['TBT'] = all_scores['TBT'].astype(str).str.replace(r'ms', '')
-        
-        
-    #transforming into integer 
-    all_scores['LCP'] = all_scores['LCP'].astype(int)
-    all_scores['FCP'] = all_scores['FCP'].astype(int)
-    all_scores['SI'] = all_scores['SI'].astype(int)
-    all_scores['TTI'] = all_scores['TTI'].astype(int)
-    
-    #spitting out a CSV 
+def CSV(df):
     import datetime
+    #spitting out a CSV 
     filename =  datetime.date.today().strftime("%d-%m-%Y")+ 'all_scores.csv'    
-    all_scores.to_csv(filename)
+    df.to_csv(filename)
 
-    print(all_scores)
+    print(df)
     print('File was saved in ' , filename)
-
     
 
-    
-    
-#calling function    
-get_scores(today)
-        
+webcorevitals(url_list, device, category, today)
     
 
