@@ -1,39 +1,51 @@
-# SEO: Run multiple URLs and get ligthhouse V6 Scores.
+# SEO: Run multiple URLs and get Ligthhouse V5 Scores
 
-Run lighthosue with multiple URLs and get different scores all in one master csv file.
+## How the Script Works
 
-## Getting Started
+This Python script is designed to extract web performance metrics, specifically Core Web Vitals, from a list of URLs using the Google PageSpeed Insights API. It utilizes the `aiohttp` library for asynchronous HTTP requests and `asyncio` for handling concurrency. The extracted metrics are then processed and saved to an Excel file for further analysis.
 
-Previously we had a different script that urn a bash file and used node lightouse. I re-did the script and made it less complicated. Now we can run evertyhgin just from python using a csv file
+### Script Workflow
 
-### Prerequisites
-```
-pandas
-requests
-```
+1. **URL List**: The script starts with a predefined list of URLs to analyze. You can customize this list by adding or removing URLs in the `url_list` variable.
 
-### Running Script 
+2. **API Configuration**: Key configuration parameters are set, including:
+    - `category`: The performance category for analysis.
+    - `today`: The current date in the format "dd-mm-yyyy."
+    - `locale`: The locale for analysis (e.g., 'br' for Brazil).
+    - `key`: Your API key, which you can obtain from [Google's PageSpeed Insights API](https://developers.google.com/speed/docs/insights/v5/get-started).
 
-Once we install the prerequistes we can go ahead and add the URLs we want to get the scores on urls.xlsx.
+3. **API Data Extraction**: The script defines an asynchronous function `webcorevitals` to make API requests for each URL, both for 'mobile' and 'desktop' devices. It extracts various performance metrics, such as First Contentful Paint (FCP), Largest Contentful Paint (LCP), Cumulative Layout Shift (CLS), Speed Index (SI), Time to Interactive (TTI), Total Page Size, Total Blocking Time (TBT), and the overall performance score.
 
-After that we go into the command line and run:
+4. **Data Transformation**: The extracted data is transformed and processed to ensure consistency and proper data types.
 
+5. **DataFrame Creation**: A Pandas DataFrame is created to organize the extracted metrics. The DataFrame is structured with columns for Date, URL, Score, FCP, SI, LCP, TTI, TBT, CLS, Size in MB, and Device.
 
+6. **Concurrent Execution**: The script uses asyncio to run API requests concurrently for all URLs and devices, significantly speeding up the data extraction process.
 
-```
-python lighthouse.py
-```
+7. **Excel Output**: The final DataFrame is concatenated from all requests and saved as an Excel file named 'output.xlsx' in the same directory as the script.
 
-Once finished this will  output one master file with all your scores for your different URLs
+## How to Use It
+
+1. **Install Dependencies**: Make sure you have the required Python libraries installed. You can install them using pip:
+
+   `pip install aiohttp asyncio pandas`
+
+2. **API Key**: Obtain an API key from [Google's PageSpeed Insights API](https://developers.google.com/speed/docs/insights/v5/get-started) and replace the `key` variable in the script with your key.
+
+3. **Customize URL List**: Customize the list of URLs to analyze by modifying the `url_list` variable in the script.
+
+4. **Run the Script**: Execute the script using Python:
+
+   `python your_script_name.py`
+
+5. **Output**: Once the script finishes execution, you will find an Excel file named 'output.xlsx' containing the extracted web performance metrics in the same directory as the script.
 
 **For Example:**
 
-| url                                	| Performance 	| accessibility 	| best-practices 	| seo 	| pwd 	|
-|------------------------------------	|-------------	|---------------	|----------------	|-----	|-----	|
-| https://www.kburchardt.com         	| 80          	| 90            	| 100            	| 100 	| 100 	|
-| https://www.uselessthingstobuy.com 	| 89          	| 91            	| 100            	| 99  	| 100 	|
-
-
+| Date       | URL                                 | Score | FCP | SI  | LCP | TTI | TBT | CLS   | Size (MB)   | Device  |
+|------------|-------------------------------------|-------|-----|-----|-----|-----|-----|-------|-------------|---------|
+| 2023-09-25 | [https://www.google.com](https://www.google.com) | 76    | 2   | 3.2 | 2   | 8.5 | 910 | 0.014 | 1.123100281 | mobile  |
+| 2023-09-25 | [https://www.google.com](https://www.google.com) | 92    | 0.4 | 0.8 | 0.6 | 1.9 | 220 | 0.007 | 1.246808052 | desktop |
 
 ## Contributing
 
