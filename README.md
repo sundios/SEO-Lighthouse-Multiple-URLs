@@ -36,7 +36,7 @@ This Python script is designed to extract web performance metrics, specifically 
 
 4. **Run the Script**: Execute the script using Python:
 
-   `python your_script_name.py`
+   `python lighthouse.py`
 
 5. **Output**: Once the script finishes execution, you will find an Excel file named 'output.xlsx' containing the extracted web performance metrics in the same directory as the script.
 
