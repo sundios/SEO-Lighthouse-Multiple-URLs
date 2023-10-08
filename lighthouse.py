@@ -9,10 +9,8 @@ from datetime import date
 
 ## List of URLs to run in a loop
 url_list = [
-    "https://www.google.com",
-    "https://www.facebook.com",
     "https://www.amazon.com",
-    "https://www.youtube.com",
+    "https://www.nytimes.com/",
 ]
 
 ## Definition of analysis type, date, analysis location, and API key
@@ -31,7 +29,7 @@ async def webcorevitals(session, url, device, category, today):
         'Expires': '0',
     }
 
-    ## API call
+    ## API Call
     async with session.get(
         "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=" + url + "&key=" + key + "&strategy=" + device + "&category=" + category+ "&locale=" + locale,
         headers=headers
@@ -44,26 +42,30 @@ async def webcorevitals(session, url, device, category, today):
         date = today
         
         try:
+            #To get the Metrics: FIP, TTFB, INP, FID:
+            data_loading = data['loadingExperience']
+            
+            #To get the Metrics: FCP, LCP, CLS, SI, TTI, Size in MB, TBT, Score:
             data = data['lighthouseResult']
         except KeyError:
             print('No Values')
             data = 'No Values.'
 
-        # First Contentful Paint
+        # First Contentful Paint (FCP)
         try:
             fcp = data['audits']['first-contentful-paint']['displayValue']
         except KeyError:
             print('No Values')
             fcp = 0
 
-        # Largest Contentful Paint
+        # Largest Contentful Paint (LCP)
         try:
             lcp = data['audits']['largest-contentful-paint']['displayValue']
         except KeyError:
             print('No Values')
             lcp = 0
 
-        # Cumulative layout shift
+        # Cumulative Layout Shift (CLS)
         try:
             cls = data['audits']['cumulative-layout-shift']['displayValue']
         except KeyError:
@@ -71,28 +73,28 @@ async def webcorevitals(session, url, device, category, today):
             cls = 0
 
         try:
-            # Speed Index
+            # Speed Index (SI)
             si = data['audits']['speed-index']['displayValue']
         except KeyError:
             print('No Values')
             si = 0
 
         try:
-            # Time to Interactive
+            # Time to Interactive (TTI)
             tti = data['audits']['interactive']['displayValue']
         except KeyError:
             print('No Values')
             tti = 0
 
         try:
-            # Total Page Size
+            # Total Page Size (Size in MB)
             bytes = data['audits']['total-byte-weight']['numericValue']
         except KeyError:
             print('No Values')
             bytes = 0
             
         try:
-            # Total Blocking Time
+            # Total Blocking Time (TBT)
             tbt = data['audits']['total-blocking-time']['displayValue']
         except KeyError:
             print('No Values')
@@ -103,9 +105,27 @@ async def webcorevitals(session, url, device, category, today):
             score = data['categories']['performance']['score']
         except KeyError:
             print('No Values')
+            
+        try:
+            # First Input Delay (FID)
+            fid = data_loading["metrics"]["FIRST_INPUT_DELAY_MS"]["percentile"]
+        except KeyError:
+            print('No Values')
+            
+        try:
+            # Interaction to Next Paint (INP)
+            inp = data_loading["metrics"]["INTERACTION_TO_NEXT_PAINT"]["percentile"]
+        except KeyError:
+            print('No Values')
+            
+        try:
+            # Time to First Byte (TTFB)
+            ttfb = data_loading["metrics"]["EXPERIMENTAL_TIME_TO_FIRST_BYTE"]["percentile"]
+        except KeyError:
+            print('No Values')
 
         ## List with all Metrics
-        values = [test, score, fcp, si, lcp, tti, tbt, cls, bytes, date, device]
+        values = [test, score, fid, inp, ttfb, fcp, si, lcp, tti, tbt, cls, bytes, date, device]
 
         ## Create a DataFrame with the Result
         df_score = pd.DataFrame(values)
@@ -114,9 +134,12 @@ async def webcorevitals(session, url, device, category, today):
         df_score = df_score.transpose()
 
         ## Naming the Columns
-        df_score.columns = ['URL', 'Score', 'FCP', 'SI', 'LCP', 'TTI', 'TBT', 'CLS', 'Size in MB', 'Date', 'Device']
+        df_score.columns = ['URL', 'Score', 'FID', 'INP', 'TTFB', 'FCP', 'SI', 'LCP', 'TTI', 'TBT', 'CLS', 'Size in MB', 'Date', 'Device']
 
         ## Transformations and Calculations to represent Metrics correctly
+        df_score['FID'] = df_score['FID'].astype(str).str.replace(r',', '').astype(float)
+        df_score['INP'] = df_score['INP'].astype(str).str.replace(r',', '').astype(float)
+        df_score['TTFB'] = df_score['TTFB'].astype(float) / 1000
         df_score['LCP'] = df_score['LCP'].astype(str).str.replace(r's', '').astype(float)
         df_score['FCP'] = df_score['FCP'].astype(str).str.replace(r's', '').astype(float)
         df_score['SI'] = df_score['SI'].astype(str).str.replace(r's', '').astype(float)
@@ -129,8 +152,9 @@ async def webcorevitals(session, url, device, category, today):
         df_score['Device'] = device
         
         ## Reorganize the column order
-        df_score = df_score[['Date', 'URL', 'Score', 'FCP', 'SI', 'LCP', 'TTI', 'TBT', 'CLS', 'Size in MB', 'Device']]
-
+        df_score = df_score[['Date', 'URL', 'Score', 'FID', 'INP', 'TTFB', 'FCP', 'SI', 'LCP', 'TTI', 'TBT', 'CLS', 'Size in MB', 'Device']]
+        df_score.columns = ['Date', 'URL', 'Score', 'First Input Delay (FID)', 'Interaction to Next Paint (INP)', 'Time to First Byte (TTFB)', 'First Contentful Paint (FCP)', 'Speed Index (SI)', 'Largest Contentful Paint (LCP)', 'Time to Interactive (TTI)', 'Total Blocking Time (TBT)', 'Cumulative Layout Shift (CLS)', 'Size in MB', 'Device']
+       
         return df_score
     
 # =============================================================================

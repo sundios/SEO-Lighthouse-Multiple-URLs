@@ -14,7 +14,7 @@ This Python script is designed to extract web performance metrics, specifically 
     - `locale`: The locale for analysis (e.g., 'br' for Brazil).
     - `key`: Your API key, which you can obtain from [Google's PageSpeed Insights API](https://developers.google.com/speed/docs/insights/v5/get-started).
 
-3. **API Data Extraction**: The script defines an asynchronous function `webcorevitals` to make API requests for each URL, both for 'mobile' and 'desktop' devices. It extracts various performance metrics, such as First Contentful Paint (FCP), Largest Contentful Paint (LCP), Cumulative Layout Shift (CLS), Speed Index (SI), Time to Interactive (TTI), Total Page Size, Total Blocking Time (TBT), and the overall performance score.
+3. **API Data Extraction**: The script defines an asynchronous function `webcorevitals` to make API requests for each URL, both for 'mobile' and 'desktop' devices. It extracts various performance metrics, such as First Input Delay (FID), Interaction to Next Paint (INP), Time to First Byte (TTFB), First Contentful Paint (FCP), Speed Index (SI), Largest Contentful Paint (LCP), Time to Interactive (TTI), Total Blocking Time (TBT), Cumulative Layout Shift (CLS), Total Page Size, and the overall performance score.
 
 4. **Data Transformation**: The extracted data is transformed and processed to ensure consistency and proper data types.
 
@@ -54,6 +54,4 @@ If you want to contribute please open an issue or send me an email hello@kburcha
 ## Authors
 
 * **Konrad Burchardt** - *Initial work* - [Sundios](https://github.com/sundios)
-
-
-
+* **Vinicius Stanula** - *Added new metrics and implemented Async Function* - [Vinicius](https://github.com/ViniciusStanula)
